@@ -6,27 +6,31 @@ export const getServerSideProps = handle({
     return json({ name: "initial name" });
   },
 
-  async post({ req: { body } }) {
-    return json({ message: `submitted ${body.name}` });
+  async post({ req, res }) {
+    console.log('req.headers["accept"]',req.headers["accept"])
+    if (req.headers["accept"].startsWith("application/json")) {
+      res.setHeader("Content-Type", "application/json");
+      res.write(JSON.stringify({ message: `Submitted ${req.body.name}` }));
+      res.end()
+    }
   }
 });
 
 export default function HtmlForm(props) {
 
   const form = useFormSubmit('nameForm');
-console.log("FORM",form,"props",props)
+
   if (form.isLoading) {
     return <p>{`Currently submitting ${form.values.name}`}</p>;
   }
-   if ("message" in props) {
-    return <p>{props.message}</p>;
-  } 
 
-  
+  if (form?.data?.message) {
+    return <p>{`${form.data.message}`}</p>;
+  }
 
   return (
   <>
-    {/* {"message" in props && <p>{props.message}</p>} */}
+    {form?.data?.message && <p>{form.data.message}</p>}
     <Form method="post" name="nameForm">
       <input name="name" defaultValue={props.name} />
       <input type="submit" />
